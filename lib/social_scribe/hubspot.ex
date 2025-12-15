@@ -28,7 +28,9 @@ defmodule SocialScribe.HubSpot do
   """
   def refresh_token(refresh_token) do
     client_id = Application.fetch_env!(:ueberauth, Ueberauth.Strategy.Hubspot.OAuth)[:client_id]
-    client_secret = Application.fetch_env!(:ueberauth, Ueberauth.Strategy.Hubspot.OAuth)[:client_secret]
+
+    client_secret =
+      Application.fetch_env!(:ueberauth, Ueberauth.Strategy.Hubspot.OAuth)[:client_secret]
 
     body = %{
       grant_type: "refresh_token",
@@ -39,7 +41,10 @@ defmodule SocialScribe.HubSpot do
 
     headers = [{"Content-Type", "application/x-www-form-urlencoded"}]
 
-    case Tesla.post(client(), "/oauth/v1/token", body, headers: headers, opts: [form_urlencoded: true]) do
+    case Tesla.post(client(), "/oauth/v1/token", body,
+           headers: headers,
+           opts: [form_urlencoded: true]
+         ) do
       {:ok, %Tesla.Env{status: 200, body: response_body}} ->
         Logger.info("Successfully refreshed HubSpot token")
 
@@ -52,14 +57,18 @@ defmodule SocialScribe.HubSpot do
 
         expires_at = DateTime.utc_now() |> DateTime.add(expires_in, :second)
 
-        {:ok, %{
-          access_token: new_access_token,
-          refresh_token: new_refresh_token,
-          expires_at: expires_at
-        }}
+        {:ok,
+         %{
+           access_token: new_access_token,
+           refresh_token: new_refresh_token,
+           expires_at: expires_at
+         }}
 
       {:ok, %Tesla.Env{status: status, body: error_body}} ->
-        Logger.error("HubSpot Token Refresh API Error (Status: #{status}): #{inspect(error_body)}")
+        Logger.error(
+          "HubSpot Token Refresh API Error (Status: #{status}): #{inspect(error_body)}"
+        )
+
         {:error, "Failed to refresh token: #{status}"}
 
       {:error, reason} ->
@@ -86,10 +95,10 @@ defmodule SocialScribe.HubSpot do
           {:ok, token_data} ->
             # Update credential in database
             _updated_credential = %{
-              credential |
-              token: token_data.access_token,
-              refresh_token: token_data.refresh_token,
-              expires_at: token_data.expires_at
+              credential
+              | token: token_data.access_token,
+                refresh_token: token_data.refresh_token,
+                expires_at: token_data.expires_at
             }
 
             case SocialScribe.Accounts.update_user_credential(credential, %{
@@ -132,6 +141,7 @@ defmodule SocialScribe.HubSpot do
         transformed_contacts =
           Enum.map(contacts, fn contact ->
             properties = contact["properties"] || %{}
+
             %{
               id: contact["id"],
               firstname: properties["firstname"] || "",
@@ -164,13 +174,18 @@ defmodule SocialScribe.HubSpot do
 
     Logger.debug("Updating HubSpot contact #{contact_id} with body: #{inspect(body)}")
 
-    case Tesla.patch(json_client(), url, body, headers: [{"Authorization", "Bearer #{credential.token}"}]) do
+    case Tesla.patch(json_client(), url, body,
+           headers: [{"Authorization", "Bearer #{credential.token}"}]
+         ) do
       {:ok, %Tesla.Env{status: 200, body: response_body}} ->
         Logger.info("Successfully updated HubSpot contact #{contact_id}")
         {:ok, response_body}
 
       {:ok, %Tesla.Env{status: status, body: error_body} = response} ->
-        Logger.error("HubSpot Update Contact API Error (Status: #{status}): Body: #{inspect(error_body)}, Full response: #{inspect(response)}")
+        Logger.error(
+          "HubSpot Update Contact API Error (Status: #{status}): Body: #{inspect(error_body)}, Full response: #{inspect(response)}"
+        )
+
         {:error, "Failed to update contact: #{status}"}
 
       {:error, reason} ->

@@ -72,13 +72,13 @@ defmodule Ueberauth.Strategy.Hubspot.OAuthTest do
     end
 
     test "includes scope in authorization URL" do
-      url = OAuth.authorize_url!([scope: "crm.objects.contacts.read"])
+      url = OAuth.authorize_url!(scope: "crm.objects.contacts.read")
 
       assert url =~ "scope=crm.objects.contacts.read"
     end
 
     test "includes state parameter in authorization URL" do
-      url = OAuth.authorize_url!([state: "random_state_value"])
+      url = OAuth.authorize_url!(state: "random_state_value")
 
       assert url =~ "state=random_state_value"
     end

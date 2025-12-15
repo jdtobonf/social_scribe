@@ -63,6 +63,7 @@ defmodule SocialScribe.Recall do
             {:ok, %Tesla.Env{body: transcript_info}} ->
               transcript_id = Map.get(transcript_info, :id)
               wait_for_transcript_completion(transcript_id)
+
             error ->
               error
           end
@@ -78,21 +79,25 @@ defmodule SocialScribe.Recall do
               case get_transcript(transcript_id) do
                 {:ok, %Tesla.Env{body: transcript_info}} ->
                   download_url = get_in(transcript_info, [:data, :download_url])
+
                   if download_url do
                     case Tesla.get(download_url) do
                       {:ok, %Tesla.Env{body: json_body}} ->
                         case Jason.decode(json_body, keys: :atoms) do
                           {:ok, parsed_data} ->
                             {:ok, %Tesla.Env{body: parsed_data}}
+
                           {:error, reason} ->
                             {:error, {:json_decode_failed, reason}}
                         end
+
                       error ->
                         error
                     end
                   else
                     {:error, :no_download_url}
                   end
+
                 error ->
                   error
               end
@@ -146,15 +151,18 @@ defmodule SocialScribe.Recall do
             "done" ->
               # Fetch the actual transcript data from download_url
               download_url = get_in(transcript_info, [:data, :download_url])
+
               if download_url do
                 case Tesla.get(download_url) do
                   {:ok, %Tesla.Env{body: json_body}} ->
                     case Jason.decode(json_body, keys: :atoms) do
                       {:ok, parsed_data} ->
                         {:ok, %Tesla.Env{body: parsed_data}}
+
                       {:error, reason} ->
                         {:error, {:json_decode_failed, reason}}
                     end
+
                   error ->
                     error
                 end

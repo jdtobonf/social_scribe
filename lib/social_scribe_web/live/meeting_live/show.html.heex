@@ -127,8 +127,13 @@
   </div>
 </div>
 
-
-<.live_component module={SocialScribeWeb.MeetingLive.HubSpotModalComponent} id="modal" show_modal={@show_modal} contacts={@contacts} credential={@hubspot_credential} />
+<.live_component
+  module={SocialScribeWeb.MeetingLive.HubSpotModalComponent}
+  id="modal"
+  show_modal={@show_modal}
+  contacts={@contacts}
+  credential={@hubspot_credential}
+/>
 
 <.modal
   :if={@live_action == :draft_post}

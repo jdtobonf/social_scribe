@@ -372,7 +372,8 @@ defmodule SocialScribe.Meetings do
     # Fallback to meeting_participants for backward compatibility with tests
     with recording when not is_nil(recording) <- List.first(bot_api_info.recordings || []),
          participant_events <- get_in(recording, [:media_shortcuts, :participant_events]),
-         participants_url when not is_nil(participants_url) <- get_in(participant_events, [:data, :participants_download_url]),
+         participants_url when not is_nil(participants_url) <-
+           get_in(participant_events, [:data, :participants_download_url]),
          {:ok, %Tesla.Env{body: json_body}} <- Tesla.get(participants_url),
          {:ok, participants} <- Jason.decode(json_body, keys: :atoms) do
       participants
@@ -439,6 +440,7 @@ defmodule SocialScribe.Meetings do
       [first_participant | _] when is_map(first_participant) ->
         # Check if there's language info in the participant data
         Map.get(first_participant, :language, "en")
+
       _ ->
         "en"
     end

@@ -52,18 +52,20 @@ defmodule Ueberauth.Strategy.Hubspot.OAuth do
       {:ok, client} ->
         token = client.token
 
-        updated_token = if is_binary(token.access_token) and String.starts_with?(token.access_token, "{") do
-          token_info = Jason.decode!(token.access_token)
-          %{
-            token |
-            access_token: token_info["access_token"],
-            refresh_token: token_info["refresh_token"],
-            expires_at: DateTime.utc_now() |> DateTime.add(token_info["expires_in"], :second),
-            other_params: Map.put(token.other_params, "hub_id", token_info["hub_id"])
-          }
-        else
-          token
-        end
+        updated_token =
+          if is_binary(token.access_token) and String.starts_with?(token.access_token, "{") do
+            token_info = Jason.decode!(token.access_token)
+
+            %{
+              token
+              | access_token: token_info["access_token"],
+                refresh_token: token_info["refresh_token"],
+                expires_at: DateTime.utc_now() |> DateTime.add(token_info["expires_in"], :second),
+                other_params: Map.put(token.other_params, "hub_id", token_info["hub_id"])
+            }
+          else
+            token
+          end
 
         {:ok, updated_token}
 
