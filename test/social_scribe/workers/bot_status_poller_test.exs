@@ -61,7 +61,19 @@ defmodule SocialScribe.Workers.BotStatusPollerTest do
     meeting_participants: []
   }
 
-  @mock_bot_api_info_done meeting_info_example(%{id: "bot-done-456"})
+  @mock_bot_api_info_done meeting_info_example(%{
+    id: "bot-done-456",
+    meeting_participants: [
+      %{
+        id: 100,
+        name: "Felipe Gomes Paradas",
+        is_host: true,
+        platform: "desktop",
+        email: nil,
+        extra_data: nil
+      }
+    ]
+  })
   @mock_transcript_data meeting_transcript_example()
 
   describe "perform/1" do
