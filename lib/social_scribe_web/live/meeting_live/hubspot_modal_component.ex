@@ -35,6 +35,7 @@ defmodule SocialScribeWeb.MeetingLive.HubSpotModalComponent do
                     end)}
                   />
 
+                  <%= if @selected_first_name != "" or @selected_last_name != "" or @selected_email != "" do %>
                   <div class="bg-slate-100 rounded p-4 mt-4">
                     <div class="flex justify-between align-center mb-4">
                       <label>
@@ -127,6 +128,7 @@ defmodule SocialScribeWeb.MeetingLive.HubSpotModalComponent do
                       Update mapping
                     </div>
                   </div>
+                  <% end %>
                 </.form>
               </div>
             </div>

@@ -105,6 +105,10 @@ defmodule SocialScribeWeb.MeetingLive.Show do
   end
 
   @impl true
+  def handle_info({SocialScribeWeb.MeetingLive.HubSpotModalComponent, :close_modal}, socket) do
+    {:noreply, assign(socket, :show_modal, false)}
+  end
+
   def handle_info({SocialScribeWeb.MeetingLive.HubSpotModalComponent, :refresh_contacts}, socket) do
     # Refresh contacts from HubSpot
     hubspot_credential = socket.assigns.hubspot_credential

@@ -38,6 +38,7 @@ defmodule SocialScribe.MixProject do
       {:mox, "~> 1.2", only: :test},
       {:timex, "~> 3.0"},
       {:tesla, "~> 1.14"},
+      {:hackney, "~> 1.18"},
       {:ueberauth_google, "~> 0.12.1"},
       {:ueberauth_linkedin, "~> 0.10.8", hex: :ueberauth_linkedin_modern},
       {:ueberauth_facebook, "~> 0.10"},

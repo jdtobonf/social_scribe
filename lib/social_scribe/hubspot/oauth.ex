@@ -52,7 +52,6 @@ defmodule Ueberauth.Strategy.Hubspot.OAuth do
       {:ok, client} ->
         token = client.token
 
-        # HubSpot returns token info as JSON in access_token field
         updated_token = if is_binary(token.access_token) and String.starts_with?(token.access_token, "{") do
           token_info = Jason.decode!(token.access_token)
           %{

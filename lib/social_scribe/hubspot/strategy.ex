@@ -18,7 +18,9 @@ defmodule Ueberauth.Strategy.Hubspot do
   Handles initial request for HubSpot authentication.
   """
   def handle_request!(conn) do
-    scopes = conn.params["scope"] || options(conn)[:default_scope]
+    scopes = Map.get(conn.params, "scope") ||
+             options(conn)[:default_scope] ||
+             "crm.objects.contacts.read crm.schemas.contacts.write crm.objects.contacts.write crm.schemas.contacts.read"
 
     params =
       [scope: scopes]
@@ -41,6 +43,15 @@ defmodule Ueberauth.Strategy.Hubspot do
 
       {:error, {error_code, error_description}} ->
         set_errors!(conn, [error(error_code, error_description)])
+
+      {:error, %OAuth2.Error{reason: reason}} ->
+        set_errors!(conn, [error("oauth2_error", inspect(reason))])
+
+      {:error, %OAuth2.Response{} = response} ->
+        set_errors!(conn, [error("oauth2_response_error", "Status: #{response.status_code}")])
+
+      error ->
+        set_errors!(conn, [error("unknown_error", inspect(error))])
     end
   end
 
@@ -60,8 +71,10 @@ defmodule Ueberauth.Strategy.Hubspot do
   Fetches the uid field from the response.
   """
   def uid(conn) do
-    # HubSpot returns user_id in the token info response
-    conn.private.hubspot_user["user_id"]
+    case Map.get(conn.private, :hubspot_user) do
+      nil -> nil
+      user -> user["user_id"]
+    end
   end
 
   @doc """
@@ -109,7 +122,6 @@ defmodule Ueberauth.Strategy.Hubspot do
   defp fetch_user(conn, token) do
     conn = put_private(conn, :hubspot_token, token)
 
-    # Get token info from HubSpot
     resp = Ueberauth.Strategy.Hubspot.OAuth.get(token, "/oauth/v1/access-tokens/#{token.access_token}")
 
     case resp do
@@ -118,7 +130,6 @@ defmodule Ueberauth.Strategy.Hubspot do
 
       {:ok, %OAuth2.Response{status_code: status_code, body: user_info}}
       when status_code in 200..399 ->
-        # Parse JSON response if it's a string
         parsed_user_info = if is_binary(user_info) do
           Jason.decode!(user_info)
         else
