@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for social-scribe on 2025-05-25T23:05:32-03:00
+# fly.toml app configuration file generated for social-scribe-winter-feather-7173 on 2025-12-15T08:56:24-05:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'social-scribe'
+app = 'social-scribe-winter-feather-7173'
 primary_region = 'gru'
 kill_signal = 'SIGTERM'
 
@@ -13,7 +13,7 @@ kill_signal = 'SIGTERM'
   release_command = '/app/bin/migrate'
 
 [env]
-  PHX_HOST = 'social-scribe.fly.dev'
+  PHX_HOST = 'social-scribe-winter-feather-7173.fly.dev'
   PORT = '8080'
 
 [http_service]
