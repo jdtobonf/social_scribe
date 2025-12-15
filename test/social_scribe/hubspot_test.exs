@@ -14,22 +14,25 @@ defmodule SocialScribe.HubSpotTest do
       Application.delete_env(:ueberauth, Ueberauth.Strategy.Hubspot.OAuth)
     end)
 
-    user = %{
-      email: "test@example.com",
-      hashed_password: Bcrypt.hash_pwd_salt("password123")
-    }
-    |> then(&struct!(SocialScribe.Accounts.User, &1))
-    |> Repo.insert!()
+    user =
+      %{
+        email: "test@example.com",
+        hashed_password: Bcrypt.hash_pwd_salt("password123")
+      }
+      |> then(&struct!(SocialScribe.Accounts.User, &1))
+      |> Repo.insert!()
 
-    credential = %{
-      user_id: user.id,
-      provider: "hubspot",
-      token: "valid_access_token",
-      refresh_token: "valid_refresh_token",
-      expires_at: DateTime.utc_now() |> DateTime.add(3600, :second) |> DateTime.truncate(:second)
-    }
-    |> then(&struct!(SocialScribe.Accounts.UserCredential, &1))
-    |> Repo.insert!()
+    credential =
+      %{
+        user_id: user.id,
+        provider: "hubspot",
+        token: "valid_access_token",
+        refresh_token: "valid_refresh_token",
+        expires_at:
+          DateTime.utc_now() |> DateTime.add(3600, :second) |> DateTime.truncate(:second)
+      }
+      |> then(&struct!(SocialScribe.Accounts.UserCredential, &1))
+      |> Repo.insert!()
 
     {:ok, user: user, credential: credential}
   end
@@ -39,19 +42,20 @@ defmodule SocialScribe.HubSpotTest do
       client = HubSpot.client()
 
       assert client.pre != []
+
       assert Enum.any?(client.pre, fn
-        {Tesla.Middleware.BaseUrl, :call, ["https://api.hubapi.com"]} -> true
-        _ -> false
-      end)
+               {Tesla.Middleware.BaseUrl, :call, ["https://api.hubapi.com"]} -> true
+               _ -> false
+             end)
     end
 
     test "includes JSON middleware" do
       client = HubSpot.client()
 
       assert Enum.any?(client.pre, fn
-        {Tesla.Middleware.JSON, :call, _} -> true
-        _ -> false
-      end)
+               {Tesla.Middleware.JSON, :call, _} -> true
+               _ -> false
+             end)
     end
   end
 
@@ -60,10 +64,11 @@ defmodule SocialScribe.HubSpotTest do
       client = HubSpot.json_client()
 
       assert client.pre != []
+
       refute Enum.any?(client.pre, fn
-        {Tesla.Middleware.FormUrlencoded, :call, _} -> true
-        _ -> false
-      end)
+               {Tesla.Middleware.FormUrlencoded, :call, _} -> true
+               _ -> false
+             end)
     end
   end
 

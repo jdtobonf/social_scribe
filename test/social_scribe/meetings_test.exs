@@ -273,27 +273,28 @@ defmodule SocialScribe.MeetingsTest do
           user_id: calendar_event.user_id
         })
 
-      bot_api_info = meeting_info_example(%{
-        recordings: [
-          %{
-            id: "test-recording-id",
-            started_at: "2025-05-24T23:13:27.113531Z",
-            created_at: "2025-05-24T23:13:27.113531Z",
-            completed_at: "2025-05-24T23:16:23.890255Z",
-            media_shortcuts: %{}
-          }
-        ],
-        meeting_participants: [
-          %{
-            id: 100,
-            name: "Felipe Gomes Paradas",
-            is_host: true,
-            platform: "desktop",
-            email: nil,
-            extra_data: nil
-          }
-        ]
-      })
+      bot_api_info =
+        meeting_info_example(%{
+          recordings: [
+            %{
+              id: "test-recording-id",
+              started_at: "2025-05-24T23:13:27.113531Z",
+              created_at: "2025-05-24T23:13:27.113531Z",
+              completed_at: "2025-05-24T23:16:23.890255Z",
+              media_shortcuts: %{}
+            }
+          ],
+          meeting_participants: [
+            %{
+              id: 100,
+              name: "Felipe Gomes Paradas",
+              is_host: true,
+              platform: "desktop",
+              email: nil,
+              extra_data: nil
+            }
+          ]
+        })
 
       transcript_data = meeting_transcript_example()
 

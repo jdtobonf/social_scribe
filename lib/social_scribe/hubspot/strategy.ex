@@ -5,7 +5,8 @@ defmodule Ueberauth.Strategy.Hubspot do
 
   use Ueberauth.Strategy,
     uid_field: :user_id,
-    default_scope: "crm.objects.contacts.read crm.schemas.contacts.write crm.objects.contacts.write crm.schemas.contacts.read",
+    default_scope:
+      "crm.objects.contacts.read crm.schemas.contacts.write crm.objects.contacts.write crm.schemas.contacts.read",
     oauth2_module: Ueberauth.Strategy.Hubspot.OAuth
 
   import Ueberauth.Strategy.Helpers
@@ -18,9 +19,10 @@ defmodule Ueberauth.Strategy.Hubspot do
   Handles initial request for HubSpot authentication.
   """
   def handle_request!(conn) do
-    scopes = Map.get(conn.params, "scope") ||
-             options(conn)[:default_scope] ||
-             "crm.objects.contacts.read crm.schemas.contacts.write crm.objects.contacts.write crm.schemas.contacts.read"
+    scopes =
+      Map.get(conn.params, "scope") ||
+        options(conn)[:default_scope] ||
+        "crm.objects.contacts.read crm.schemas.contacts.write crm.objects.contacts.write crm.schemas.contacts.read"
 
     params =
       [scope: scopes]
@@ -122,7 +124,8 @@ defmodule Ueberauth.Strategy.Hubspot do
   defp fetch_user(conn, token) do
     conn = put_private(conn, :hubspot_token, token)
 
-    resp = Ueberauth.Strategy.Hubspot.OAuth.get(token, "/oauth/v1/access-tokens/#{token.access_token}")
+    resp =
+      Ueberauth.Strategy.Hubspot.OAuth.get(token, "/oauth/v1/access-tokens/#{token.access_token}")
 
     case resp do
       {:ok, %OAuth2.Response{status_code: 401, body: body}} ->
@@ -130,11 +133,12 @@ defmodule Ueberauth.Strategy.Hubspot do
 
       {:ok, %OAuth2.Response{status_code: status_code, body: user_info}}
       when status_code in 200..399 ->
-        parsed_user_info = if is_binary(user_info) do
-          Jason.decode!(user_info)
-        else
-          user_info
-        end
+        parsed_user_info =
+          if is_binary(user_info) do
+            Jason.decode!(user_info)
+          else
+            user_info
+          end
 
         put_private(conn, :hubspot_user, parsed_user_info)
 
