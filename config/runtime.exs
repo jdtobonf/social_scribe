@@ -88,7 +88,8 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    check_origin: ["https://" <> host]
 
   config :ueberauth, Ueberauth.Strategy.Google.OAuth,
     redirect_uri: "https://" <> host <> "/auth/google/callback"
