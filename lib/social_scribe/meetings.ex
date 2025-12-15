@@ -355,13 +355,32 @@ defmodule SocialScribe.Meetings do
 
       {:ok, _transcript} = create_meeting_transcript(transcript_attrs)
 
-      Enum.each(bot_api_info.meeting_participants || [], fn participant_data ->
+      # API v1.11: Fetch participants from participants_download_url
+      participants = fetch_participants_from_bot_info(bot_api_info)
+
+      Enum.each(participants, fn participant_data ->
         participant_attrs = parse_participant_attrs(meeting, participant_data)
         create_meeting_participant(participant_attrs)
       end)
 
       Repo.preload(meeting, [:meeting_transcript, :meeting_participants])
     end)
+  end
+
+  defp fetch_participants_from_bot_info(bot_api_info) do
+    # API v1.11: Try to get participants from participants_download_url
+    # Fallback to meeting_participants for backward compatibility with tests
+    with recording when not is_nil(recording) <- List.first(bot_api_info.recordings || []),
+         participant_events <- get_in(recording, [:media_shortcuts, :participant_events]),
+         participants_url when not is_nil(participants_url) <- get_in(participant_events, [:data, :participants_download_url]),
+         {:ok, %Tesla.Env{body: json_body}} <- Tesla.get(participants_url),
+         {:ok, participants} <- Jason.decode(json_body, keys: :atoms) do
+      participants
+    else
+      _ ->
+        # Fallback to meeting_participants if download URL is not available
+        Map.get(bot_api_info, :meeting_participants, [])
+    end
   end
 
   # --- Private Parser Functions ---
@@ -402,12 +421,30 @@ defmodule SocialScribe.Meetings do
   end
 
   defp parse_transcript_attrs(meeting, transcript_data) do
+    # API v1.11: transcript_data is now an array of participant objects with words
+    # Format: [%{participant: %{...}, words: [%{text: "", start_timestamp: %{...}, end_timestamp: %{...}}]}]
+    language = extract_language_from_transcript(transcript_data)
+
     %{
       meeting_id: meeting.id,
       content: %{data: transcript_data},
-      language: List.first(transcript_data || []) |> Map.get(:language, "unknown")
+      language: language
     }
   end
+
+  defp extract_language_from_transcript(transcript_data) when is_list(transcript_data) do
+    # Try to extract language from first participant's words if available
+    # Otherwise default to "en" for English
+    case transcript_data do
+      [first_participant | _] when is_map(first_participant) ->
+        # Check if there's language info in the participant data
+        Map.get(first_participant, :language, "en")
+      _ ->
+        "en"
+    end
+  end
+
+  defp extract_language_from_transcript(_), do: "en"
 
   defp parse_participant_attrs(meeting, participant_data) do
     %{

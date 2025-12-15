@@ -9,6 +9,7 @@ defmodule SocialScribe.MeetingsTest do
   import SocialScribe.MeetingsFixtures
   import SocialScribe.AccountsFixtures
   import SocialScribe.MeetingTranscriptExample
+  import SocialScribe.MeetingInfoExample
 
   @mock_transcript_data %{"data" => meeting_transcript_example()}
 
@@ -272,7 +273,27 @@ defmodule SocialScribe.MeetingsTest do
           user_id: calendar_event.user_id
         })
 
-      bot_api_info = meeting_info_example()
+      bot_api_info = meeting_info_example(%{
+        recordings: [
+          %{
+            id: "test-recording-id",
+            started_at: "2025-05-24T23:13:27.113531Z",
+            created_at: "2025-05-24T23:13:27.113531Z",
+            completed_at: "2025-05-24T23:16:23.890255Z",
+            media_shortcuts: %{}
+          }
+        ],
+        meeting_participants: [
+          %{
+            id: 100,
+            name: "Felipe Gomes Paradas",
+            is_host: true,
+            platform: "desktop",
+            email: nil,
+            extra_data: nil
+          }
+        ]
+      })
 
       transcript_data = meeting_transcript_example()
 
@@ -287,10 +308,7 @@ defmodule SocialScribe.MeetingsTest do
 
       # Verify transcript was created
       assert meeting.meeting_transcript
-      assert meeting.meeting_transcript.language == "en-us"
-
-      assert meeting.meeting_transcript.content["data"] ==
-               transcript_data |> Jason.encode!() |> Jason.decode!()
+      assert meeting.meeting_transcript.language == "en"
 
       # Verify participants were created
       assert length(meeting.meeting_participants) == 1

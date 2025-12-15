@@ -6,6 +6,8 @@ defmodule SocialScribeWeb.MeetingLive.Show do
 
   alias SocialScribe.Meetings
   alias SocialScribe.Automations
+  alias SocialScribe.Accounts
+  alias SocialScribe.HubSpot
 
   @impl true
   def mount(%{"id" => meeting_id}, _session, socket) do
@@ -17,6 +19,26 @@ defmodule SocialScribeWeb.MeetingLive.Show do
       |> Kernel.>(0)
 
     automation_results = Automations.list_automation_results_for_meeting(meeting_id)
+
+    # Fetch HubSpot contacts if user has HubSpot integration
+    hubspot_credential = Accounts.get_user_credential(socket.assigns.current_user, "hubspot")
+
+    contacts =
+      case hubspot_credential do
+        nil ->
+          # No HubSpot integration, return empty list or fallback
+          []
+
+        credential ->
+          case HubSpot.fetch_contacts(credential) do
+            {:ok, hubspot_contacts} ->
+              hubspot_contacts
+
+            {:error, _reason} ->
+              # Failed to fetch, return empty list
+              []
+          end
+      end
 
     if meeting.calendar_event.user_id != socket.assigns.current_user.id do
       socket =
@@ -32,6 +54,9 @@ defmodule SocialScribeWeb.MeetingLive.Show do
         |> assign(:meeting, meeting)
         |> assign(:automation_results, automation_results)
         |> assign(:user_has_automations, user_has_automations)
+        |> assign(:show_modal, false)
+        |> assign(:contacts, contacts)
+        |> assign(:hubspot_credential, hubspot_credential)
         |> assign(
           :follow_up_email_form,
           to_form(%{
@@ -68,6 +93,37 @@ defmodule SocialScribeWeb.MeetingLive.Show do
       |> assign(:follow_up_email_form, to_form(params))
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("open_modal", _params, socket) do
+    {:noreply, assign(socket, :show_modal, true)}
+  end
+
+  def handle_event("close_modal", _params, socket) do
+    {:noreply, assign(socket, :show_modal, false)}
+  end
+
+  @impl true
+  def handle_info({SocialScribeWeb.MeetingLive.HubSpotModalComponent, :close_modal}, socket) do
+    {:noreply, assign(socket, :show_modal, false)}
+  end
+
+  def handle_info({SocialScribeWeb.MeetingLive.HubSpotModalComponent, :refresh_contacts}, socket) do
+    # Refresh contacts from HubSpot
+    hubspot_credential = socket.assigns.hubspot_credential
+
+    contacts =
+      if hubspot_credential do
+        case SocialScribe.HubSpot.fetch_contacts(hubspot_credential) do
+          {:ok, hubspot_contacts} -> hubspot_contacts
+          {:error, _reason} -> socket.assigns.contacts
+        end
+      else
+        socket.assigns.contacts
+      end
+
+    {:noreply, assign(socket, :contacts, contacts)}
   end
 
   defp format_duration(nil), do: "N/A"

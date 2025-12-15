@@ -51,17 +51,29 @@ defmodule SocialScribe.Workers.BotStatusPollerTest do
       }
     ],
     join_at: "2025-05-24T23:13:00Z",
-    transcription_options: %{
-      provider: "meeting_captions",
-      use_separate_streams_when_available: false
-    },
+    # transcription_options: %{
+    #   provider: "meeting_captions",
+    #   use_separate_streams_when_available: false
+    # },
     bot_name: "Meeting Notetaker",
     media_retention_end: "2025-05-31T23:16:23.890255Z",
     meeting_metadata: %{title: "jqq-gusf-vvs"},
     meeting_participants: []
   }
 
-  @mock_bot_api_info_done meeting_info_example(%{id: "bot-done-456"})
+  @mock_bot_api_info_done meeting_info_example(%{
+    id: "bot-done-456",
+    meeting_participants: [
+      %{
+        id: 100,
+        name: "Felipe Gomes Paradas",
+        is_host: true,
+        platform: "desktop",
+        email: nil,
+        extra_data: nil
+      }
+    ]
+  })
   @mock_transcript_data meeting_transcript_example()
 
   describe "perform/1" do
